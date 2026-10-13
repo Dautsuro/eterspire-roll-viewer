@@ -52,6 +52,10 @@ EXPECTED = {
         "Ominous Fire Staff": {DAMAGE: (5,), BAS: (4,), VITALITY: (4,)},
         "Rhodonite Thunder Staff": {DAMAGE: (4,), BAS: (4,), VITALITY: (3,)},
     },
+    "compare_negative_rolls.png": {
+        "Ominous Fire Staff": {DAMAGE: (5,), BAS: (4,), VITALITY: (4,)},
+        "Rhodonite Fire Staff": {DAMAGE: (4,), BAS: (1,), VITALITY: (1,)},
+    },
     "compare_armor.png": {
         "Rhodonite Thread Gown": {HP: (3,), BAS: (5,), STRENGTH: (4,)},
         "Topaz Thread Gown": {HP: (1,), BAS: (1,), STRENGTH: (5,)},
