@@ -1,0 +1,40 @@
+[project]
+name = "eterspire-roll-viewer"
+version = "0.1.0"
+description = "Shows the roll level of every stat on Eterspire items, right next to the stat in the game."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "mss>=9.0",
+    "numpy>=1.24",
+    "opencv-python-headless>=4.8",
+    "pillow>=10",
+    "pystray>=0.19",
+    "winrt-runtime>=2.0",
+    "winrt-Windows.Foundation>=2.0",
+    "winrt-Windows.Foundation.Collections>=2.0",
+    "winrt-Windows.Globalization>=2.0",
+    "winrt-Windows.Graphics.Imaging>=2.0",
+    "winrt-Windows.Media.Ocr>=2.0",
+    "winrt-Windows.Storage.Streams>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pyinstaller>=6"]
+
+[project.gui-scripts]
+eterspire-roll-viewer = "roll_viewer.app:main"
+
+[tool.setuptools]
+packages = ["roll_viewer"]
+
+[tool.setuptools.package-data]
+roll_viewer = ["data/*.json", "assets/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
