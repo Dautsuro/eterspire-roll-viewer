@@ -93,18 +93,42 @@ def _sums_for_quality(quality: int, levels_total: int) -> set[int]:
     return sums or {s for s in range(levels_total + 1) if round(100 * s / levels_total) == quality}
 
 
+def _tier_values(table: dict, tier: float, multiplier: float) -> tuple[float, float]:
+    """[high, highest] at ``tier``: from the table, geometrically between known tiers, or scaled past them."""
+    known = sorted(int(t) for t in table)
+    if str(tier) in table:
+        return tuple(table[str(tier)])
+    below = [t for t in known if t < tier]
+    above = [t for t in known if t > tier]
+    if below and above:
+        lo, hi = below[-1], above[0]
+        f = (tier - lo) / (hi - lo)
+        return tuple(a * (b / a) ** f for a, b in zip(table[str(lo)], table[str(hi)]))
+    nearest = below[-1] if below else above[0]
+    return tuple(v * multiplier ** (tier - nearest) for v in table[str(nearest)])
+
+
+def gear_values(stat: str, kind: str, tier: int | None, excellent: bool, gear: dict) -> tuple[float, float]:
+    """The values of the High and Highest rolls of a Strength, Vitality or Bonus Attack Speed stat."""
+    rarity = "excellent" if excellent else "normal"
+    if stat == BONUS_ATTACK_SPEED:
+        return tuple(gear[BONUS_ATTACK_SPEED][kind][rarity])
+    table = gear[stat]
+    if tier is None:
+        tier = max(int(t) for t in table["normal"])
+    if excellent:
+        if str(tier) in table["excellent"]:
+            return tuple(table["excellent"][str(tier)])
+        tier += 1  # Excellent rolls are the next tier's normal rolls
+    return _tier_values(table["normal"], tier, gear["tier_multiplier"])
+
+
 def _signed_gear_level(stat: str, value: int | None, item: Item, gear: dict) -> set[int]:
     if value is None:
         return {1, 2, 3, 4, 5}
     if value == 0:
         return {3}
-    rarity = "excellent" if item.excellent else "normal"
-    if stat == BONUS_ATTACK_SPEED:
-        high, highest = gear[BONUS_ATTACK_SPEED][item.kind][rarity]
-    else:
-        tier = item.tier if item.tier is not None else gear["reference_tier"]
-        scale = gear["tier_multiplier"] ** (tier - gear["reference_tier"])
-        high, highest = (v * scale for v in gear[stat][rarity])
+    high, highest = gear_values(stat, item.kind, item.tier, item.excellent, gear)
     level = _nearest(value, {4: high, 5: highest})
     return {level} if value > 0 else {6 - level}
 

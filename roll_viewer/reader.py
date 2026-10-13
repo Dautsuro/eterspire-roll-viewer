@@ -37,7 +37,7 @@ _LABELS = [  # order matters: "Bonus Attack Speed" before "Attack Speed"
     (DAMAGE, re.compile(r"dam[a-z]*", re.I)),
     (VITALITY, re.compile(r"vit[a-z1]*", re.I)),
     (STRENGTH, re.compile(r"str[ea]n[gq]\w*", re.I)),
-    (HP, re.compile(r"\bH\s*P\b")),
+    (HP, re.compile(r"^[^A-Za-z]*H\s*P\b", re.I)),  # only at the start of the line: "HP", "H p"
 ]
 _VALUE_RE = re.compile(r"^[^\w+\-−]*([+\-−]?)\s*(\d+)\s*%?(?:\s*\+\s*(\d+)\s*%?)?")
 _LOOKALIKES = str.maketrans({"O": "0", "o": "0", "D": "0", "Q": "0", "I": "1", "l": "1", "|": "1", "i": "1",

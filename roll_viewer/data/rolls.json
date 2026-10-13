@@ -1,21 +1,21 @@
 {
  "_comment": [
-  "Stat values for each roll. Sources: eterspire.wiki (Ominous Gear, Gear Guide, Ring Stats).",
-  "Gear: Strength (armor) and Vitality (weapons) are given for reference_tier as [high, highest];",
-  "other tiers are scaled by tier_multiplier per tier (T16 Str 39/64 and T15 Str 57 match exactly).",
+  "Stat values for each roll. Sources: eterspire.wiki (gear set pages, Gear Guide, Ring Stats) and items seen in game.",
+  "Gear: Strength (armor) and Vitality (weapons) as [high, highest] for each tier where it's known. Other tiers are",
+  "interpolated between known tiers, or scaled by tier_multiplier per tier past the last one. Excellent values that",
+  "aren't listed are taken as the next tier's normal values (true for every set on the wiki).",
   "Negative rolls are the same values with a minus sign. Bonus Attack Speed is the same for every tier.",
   "Rings: values for levels -3, -2, -1, low, mid, high (normal) and low, mid, high (excellent); null = can't roll."
  ],
  "gear": {
-  "reference_tier": 18,
   "tier_multiplier": 1.125,
   "strength": {
-   "normal": [49, 81],
-   "excellent": [55, 91]
+   "normal": {"14": [30, 49], "16": [39, 64], "17": [44, 73], "18": [49, 81], "22": [109, 182]},
+   "excellent": {"17": [49, 81], "18": [55, 91]}
   },
   "vitality": {
-   "normal": [162, 405],
-   "excellent": [181, 452]
+   "normal": {"14": [98, 245], "15": [113, 282], "17": [145, 362], "18": [162, 405], "21": [331, 827]},
+   "excellent": {"17": [162, 405], "18": [181, 452], "21": [363, 908]}
   },
   "bonus_attack_speed": {
    "weapon": {
@@ -29,43 +29,7 @@
   }
  },
  "rings": {
-  "normal": {
-   "1": [-1, null, null, null, null, 1],
-   "2": [-2, -1, null, null, 1, 2],
-   "3": [-5, -4, -3, 3, 4, 5],
-   "4": [-8, -7, -4, 4, 7, 8],
-   "5": [-13, -10, -7, 7, 10, 13],
-   "6": [-18, -15, -9, 9, 15, 18],
-   "7": [-25, -20, -13, 13, 20, 25],
-   "8": [-32, -26, -16, 16, 26, 32],
-   "9": [-41, -33, -21, 21, 33, 41],
-   "10": [-50, -40, -25, 25, 40, 50],
-   "11": [-61, -49, -31, 31, 49, 61],
-   "12": [-72, -58, -36, 36, 58, 72],
-   "13": [-85, -68, -43, 43, 68, 85],
-   "14": [-98, -79, -49, 49, 79, 98],
-   "15": [-113, -90, -57, 57, 90, 113],
-   "16": [-128, -103, -64, 64, 103, 128],
-   "22": [null, null, null, 182, 291, 363]
-  },
-  "excellent": {
-   "1": [null, 1, 2],
-   "2": [3, 4, 5],
-   "3": [4, 7, 8],
-   "4": [7, 10, 13],
-   "5": [9, 15, 18],
-   "6": [13, 20, 25],
-   "7": [16, 26, 32],
-   "8": [21, 33, 41],
-   "9": [25, 40, 50],
-   "10": [31, 49, 61],
-   "11": [36, 58, 72],
-   "12": [43, 68, 85],
-   "13": [49, 79, 98],
-   "14": [57, 90, 113],
-   "15": [64, 103, 128],
-   "16": [73, 116, 145],
-   "22": [199, 318, 397]
-  }
+  "normal": {"1": [-1, null, null, null, null, 1], "2": [-2, -1, null, null, 1, 2], "3": [-5, -4, -3, 3, 4, 5], "4": [-8, -7, -4, 4, 7, 8], "5": [-13, -10, -7, 7, 10, 13], "6": [-18, -15, -9, 9, 15, 18], "7": [-25, -20, -13, 13, 20, 25], "8": [-32, -26, -16, 16, 26, 32], "9": [-41, -33, -21, 21, 33, 41], "10": [-50, -40, -25, 25, 40, 50], "11": [-61, -49, -31, 31, 49, 61], "12": [-72, -58, -36, 36, 58, 72], "13": [-85, -68, -43, 43, 68, 85], "14": [-98, -79, -49, 49, 79, 98], "15": [-113, -90, -57, 57, 90, 113], "16": [-128, -103, -64, 64, 103, 128], "22": [null, null, null, 182, 291, 363]},
+  "excellent": {"1": [null, 1, 2], "2": [3, 4, 5], "3": [4, 7, 8], "4": [7, 10, 13], "5": [9, 15, 18], "6": [13, 20, 25], "7": [16, 26, 32], "8": [21, 33, 41], "9": [25, 40, 50], "10": [31, 49, 61], "11": [36, 58, 72], "12": [43, 68, 85], "13": [49, 79, 98], "14": [57, 90, 113], "15": [64, 103, 128], "16": [73, 116, 145], "22": [199, 318, 397]}
  }
 }

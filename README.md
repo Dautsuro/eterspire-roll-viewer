@@ -44,9 +44,11 @@ so HP must be Neutral (3): (3 + 4 + 5) / 15 = 80%.
 - **Bonus Attack Speed** has the same values at every tier: High / Highest are 1% / 2% on armor
   and 5% / 10% on weapons (3% / 4% and 7% / 12% on Excellent items). Negative values are Low / Lowest,
   0 or no line is Neutral.
-- **Strength** (armor) and **Vitality** (weapons) work the same way. Their values grow ×1.125 per tier,
-  so one reference tier is enough: Tier 18 Strength is 49 / 81 (Excellent 55 / 91), Vitality 162 / 405
-  (Excellent 181 / 452). The app picks the closest one, so small differences between sets don't matter.
+- **Strength** (armor) and **Vitality** (weapons) work the same way, with values that depend on the tier:
+  for example Strength is 49 / 81 at Tier 18 but 109 / 182 at Tier 22. The app knows them for several tiers,
+  estimates the tiers in between, and picks the closest value; High and Highest are far apart (×1.65 for
+  Strength, ×2.5 for Vitality), so an estimate only needs to be roughly right. Excellent items roll the next
+  tier's values.
 - **Damage** and **HP** values change between game updates, so they're not read from a table:
   their roll is what's left of the quality once the two other rolls are known.
   Excellent items only roll 3 to 5 on Damage/HP.
