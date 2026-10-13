@@ -85,3 +85,14 @@ def test_screenshots(ocr, screenshot):
         name = next(n for n in EXPECTED[screenshot] if n in panel.name.replace("R Ing", "Ring"))
         found[name] = {s: r.levels for s, r in compute_rolls(panel.item, load_data()).items()}
     assert found == EXPECTED[screenshot]
+
+
+def test_reading_only_where_the_previous_tooltips_were(ocr):
+    import cv2
+
+    from roll_viewer.reader import read_panels, search_region
+
+    weapon = cv2.imread(str(SCREENSHOTS / "live_compare_weapon.png"))
+    armor = cv2.imread(str(SCREENSHOTS / "compare_armor.png"))
+    regions = [search_region(p, weapon.shape) for p in read_panels(weapon, ocr)]
+    assert [p.item for p in read_panels(armor, ocr, regions)] == [p.item for p in read_panels(armor, ocr)]

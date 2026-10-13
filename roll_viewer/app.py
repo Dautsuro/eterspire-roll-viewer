@@ -13,9 +13,6 @@ import tkinter as tk
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-import cv2
-import numpy as np
-
 from . import tray
 from .capture import ScreenGrabber, enable_dpi_awareness, find_window, is_foreground
 from .ocr import Ocr
@@ -23,10 +20,11 @@ from .overlay import Overlay
 from .overlay_draw import Label, layout
 from .reader import Panel, read_panels
 from .rolls import compute_rolls, load_data
+from .tracker import CHANGED, UNCHANGED, TooltipTracker
 
 APP_NAME = "Eterspire Roll Viewer"
 LOG_DIR = Path(os.environ.get("APPDATA", Path.home())) / "EterspireRollViewer"
-FULL_READ_EVERY = 3.0  # seconds: read again even if the tooltips look unchanged
+LABELS_CHECK_EVERY = 0.1  # seconds between checks that the tooltips under the labels are unchanged
 log = logging.getLogger("roll_viewer")
 
 
@@ -47,25 +45,6 @@ def _already_running() -> bool:
 
     ctypes.windll.kernel32.CreateMutexW(None, False, "EterspireRollViewerSingleInstance")
     return ctypes.windll.kernel32.GetLastError() == 183  # ERROR_ALREADY_EXISTS
-
-
-def _panels_area(panels: list[Panel], shape) -> tuple[int, int, int, int] | None:
-    """The part of the frame the open tooltips' text covers, to notice when it changes."""
-    if not panels:
-        return None
-    boxes = [line.box for p in panels for line in p.lines] + [p.stats_box for p in panels]
-    unit = max(p.unit for p in panels)
-    left = max(0, int(min(b[0] for b in boxes) - unit * 2))
-    top = max(0, int(min(b[1] for b in boxes) - unit * 10))
-    right = min(shape[1], int(max(b[2] for b in boxes) + unit * 2))
-    bottom = min(shape[0], int(max(b[3] for b in boxes) + unit))
-    return left, top, right, bottom
-
-
-def _thumbnail(frame: np.ndarray, area) -> np.ndarray:
-    left, top, right, bottom = area
-    gray = cv2.cvtColor(frame[top:bottom, left:right], cv2.COLOR_BGR2GRAY)
-    return cv2.resize(gray, (max(1, (right - left) // 4), max(1, (bottom - top) // 4)), interpolation=cv2.INTER_AREA)
 
 
 class Watcher(threading.Thread):
@@ -93,14 +72,12 @@ class Watcher(threading.Thread):
 
     def run(self) -> None:
         grabber, ocr, data = ScreenGrabber(), Ocr(), load_data()
-        shown: list[Panel] = []
-        pending = None  # signature of the last reading, which must repeat to replace what's shown
-        empty_reads = 0
-        last_full, area, thumb = 0.0, None, None
+        tracker = TooltipTracker(lambda frame, regions=None: read_panels(frame, ocr, regions))
         logged: tuple = ()
         try:
             while not self.stopped.is_set():
                 started = time.monotonic()
+                wait = self.interval
                 try:
                     target, status = find_window(self.title)
                     if self.paused.is_set():
@@ -111,41 +88,31 @@ class Watcher(threading.Thread):
                         self._post(None, [])
                     else:
                         frame = grabber.grab(target)
-                        if area and thumb is not None and started - last_full < FULL_READ_EVERY:
-                            now = _thumbnail(frame, area)
-                            if now.shape == thumb.shape and float(np.mean(cv2.absdiff(now, thumb))) < 2.0:
-                                self._post(target.region, self._labels(shown, data))
-                                self._sleep(started)
-                                continue
-                        panels = read_panels(frame, ocr)
-                        last_full = started
-                        signature = tuple(p.signature() for p in panels)
-                        if panels:
-                            empty_reads = 0
-                            if not shown or signature == pending:
-                                shown = panels
-                            pending = signature
-                        else:
-                            empty_reads += 1
-                            pending = None
-                            if empty_reads >= 2:
-                                shown = []
-                        area = _panels_area(shown, frame.shape)
-                        thumb = _thumbnail(frame, area) if area else None
-                        for panel in panels:
-                            if panel.problems:
-                                log.debug("%s: %s %s", panel.name, panel.problems, panel.item)
+                        state = tracker.look(frame)
+                        if state == CHANGED:
+                            self._post(target.region, [])  # take the old labels off before reading again
+                            log.debug("tooltips changed")
+                        if state != UNCHANGED:
+                            tracker.read(frame)
+                        elif tracker.refresh_due():
+                            tracker.read(frame, refresh=True)
+                        shown = tracker.shown
+                        if shown:
+                            wait = LABELS_CHECK_EVERY
                         self.status = f"{len(shown)} item(s) on screen" if shown else "watching"
-                        shown_signature = tuple(p.signature() for p in shown)
-                        if shown_signature != logged:
-                            logged = shown_signature
+                        signature = tuple(p.signature() for p in shown)
+                        if signature != logged:
+                            logged = signature
                             log.debug("%s: %s", self.status, "; ".join(f"{p.name} {p.item}" for p in shown))
+                            for panel in shown:
+                                if panel.problems:
+                                    log.debug("%s: %s", panel.name, panel.problems)
                         self._post(target.region, self._labels(shown, data))
                 except Exception:  # keep watching whatever happens; the log says what went wrong
                     log.exception("reading the screen failed")
                     self.status = "error, see the log"
-                    time.sleep(1)
-                self._sleep(started)
+                    wait = 1.0
+                self.stopped.wait(max(0.02, wait - (time.monotonic() - started)))
         finally:
             grabber.close()
             ocr.close()
@@ -154,8 +121,6 @@ class Watcher(threading.Thread):
     def _labels(panels: list[Panel], data: dict) -> list[Label]:
         return layout([(p, compute_rolls(p.item, data)) for p in panels])
 
-    def _sleep(self, started: float) -> None:
-        self.stopped.wait(max(0.05, self.interval - (time.monotonic() - started)))
 
 
 def main() -> None:

@@ -211,8 +211,30 @@ def _kind(slot: str | None, stats: dict, name: str) -> str:
     return RING if set(stats) <= set(RING_STATS) and stats else ARMOR
 
 
-def read_panels(frame: np.ndarray, ocr: Ocr) -> list[Panel]:
-    first_pass = ocr.read(frame, FIRST_PASS_SCALE)
+def search_region(panel: Panel, shape) -> tuple[int, int, int, int]:
+    """Where to look for a tooltip opened in place of this one (its whole height, with room to shift)."""
+    left, top, _, _ = panel.stats_box
+    unit = panel.unit
+    return (max(0, int(left - unit * 3)), max(0, int(top - unit * 26)),
+            min(shape[1], int(left + unit * (PANEL_RIGHT + 3))), min(shape[0], int(top + unit * 18)))
+
+
+def _first_pass(frame: np.ndarray, ocr: Ocr, regions) -> list[Line]:
+    if regions is None:
+        return ocr.read(frame, FIRST_PASS_SCALE)
+    lines = []
+    for left, top, right, bottom in regions:
+        for line in ocr.read(frame[top:bottom, left:right], FIRST_PASS_SCALE):
+            for word in line.words:
+                word.x += left
+                word.y += top
+            lines.append(line)
+    return lines
+
+
+def read_panels(frame: np.ndarray, ocr: Ocr, regions: list[tuple[int, int, int, int]] | None = None) -> list[Panel]:
+    """Reads every tooltip in the frame, or only those inside ``regions`` (much faster)."""
+    first_pass = _first_pass(frame, ocr, regions)
     panels = []
     for stats_line, upgrade_line in _find_anchors(first_pass):
         unit = stats_line.height
