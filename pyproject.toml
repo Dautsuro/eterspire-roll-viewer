@@ -1,6 +1,6 @@
 [project]
 name = "eterspire-roll-viewer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Shows the roll level of every stat on Eterspire items, right next to the stat in the game."
 readme = "README.md"
 license = { text = "MIT" }

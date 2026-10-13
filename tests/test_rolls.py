@@ -90,7 +90,12 @@ GEAR = DATA["gear"]
         (STRENGTH, ARMOR, 17, True, (49, 81)),  # Flarium Excellent = Ominous
         (STRENGTH, ARMOR, 15, False, (34.2, 56.0)),  # between Tier 14 and 16: Topaz Strength 57 is Highest
         (STRENGTH, ARMOR, 13, False, (26.7, 43.6)),  # below the table: /1.125
-        (STRENGTH, ARMOR, 21, True, (109, 182)),  # Excellent = next tier's normal
+        (STRENGTH, ARMOR, 19, False, (55, 91)),
+        (STRENGTH, ARMOR, 19, True, (60, 100)),  # not Tier 20 normal (90 / 150)
+        (STRENGTH, ARMOR, 21, True, (109, 182)),  # = Tier 22 normal, as seen on Null gear
+        (STRENGTH, ARMOR, 22, True, (122.6, 204.8)),  # unknown: Tier 23 normal, scaled from Tier 22
+        (VITALITY, WEAPON, 20, False, (300, 750)),
+        (VITALITY, WEAPON, 21, True, (363, 908)),
         (VITALITY, WEAPON, 16, False, (128.0, 319.5)),  # Rhodonite Fire Staff Vitality -320 is Lowest
         (BAS, WEAPON, 22, True, (7, 12)),  # the same at every tier
     ],

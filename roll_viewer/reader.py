@@ -31,6 +31,7 @@ _STATS_RE = re.compile(r"^\W*stats\W*$", re.I)
 _UPGRADE_RE = re.compile(r"^\W*upgr\w*\s*le\w*", re.I)
 _SLOT_RE = re.compile(r"slot\s*[:;.]?\s*(\w+)", re.I)
 _END_RE = re.compile(r"weapon|ability|weight|locked|equipped|cannot", re.I)
+_OTHER_STAT_RE = re.compile(r"dark|resist|effective", re.I)  # stats that don't count toward quality
 _LABELS = [  # order matters: "Bonus Attack Speed" before "Attack Speed"
     (BONUS_ATTACK_SPEED, re.compile(r"bonus\s*attack\s*s\w*", re.I)),
     (ATTACK_SPEED, re.compile(r"attack\s*s[pq]e+d", re.I)),
@@ -246,6 +247,8 @@ def read_panels(frame: np.ndarray, ocr: Ocr, regions: list[tuple[int, int, int, 
         for text, box in _read_rows(frame, ocr, left, top, right, int(stats_line.y + unit * STATS_DEPTH), unit):
             parsed = parse_stat_line(text)
             if parsed is None:
+                if _OTHER_STAT_RE.search(text):
+                    continue
                 if _END_RE.search(text) or lines and len(text) > 3:
                     break
                 continue

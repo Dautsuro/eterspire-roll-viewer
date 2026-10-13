@@ -1,21 +1,23 @@
 {
  "_comment": [
-  "Stat values for each roll. Sources: eterspire.wiki (gear set pages, Gear Guide, Ring Stats) and items seen in game.",
+  "Stat values for each roll. Sources: eterspire.wiki (gear set pages, Bonus Stats tables, Gear Guide, Ring Stats).",
   "Gear: Strength (armor) and Vitality (weapons) as [high, highest] for each tier where it's known. Other tiers are",
-  "interpolated between known tiers, or scaled by tier_multiplier per tier past the last one. Excellent values that",
-  "aren't listed are taken as the next tier's normal values (true for every set on the wiki).",
+  "interpolated between known tiers, or scaled by tier_multiplier per tier past the last one. A missing Excellent",
+  "tier uses the next tier's normal values (true up to Tier 19 and from Tier 20 on).",
+  "Tier 19 normal Vitality has no High value on the wiki: 181 is Tier 18 Excellent's, like the rest of Tier 19 normal.",
+  "Tier 22 normal Vitality is Tier 21 Excellent's (Tier 22 normal Strength, seen in game, matches that rule).",
   "Negative rolls are the same values with a minus sign. Bonus Attack Speed is the same for every tier.",
   "Rings: values for levels -3, -2, -1, low, mid, high (normal) and low, mid, high (excellent); null = can't roll."
  ],
  "gear": {
   "tier_multiplier": 1.125,
   "strength": {
-   "normal": {"14": [30, 49], "16": [39, 64], "17": [44, 73], "18": [49, 81], "22": [109, 182]},
-   "excellent": {"17": [49, 81], "18": [55, 91]}
+   "normal": {"14": [30, 49], "16": [39, 64], "17": [44, 73], "18": [49, 81], "19": [55, 91], "20": [90, 150], "21": [100, 166], "22": [109, 182]},
+   "excellent": {"17": [49, 81], "18": [55, 91], "19": [60, 100], "20": [100, 166], "21": [109, 182]}
   },
   "vitality": {
-   "normal": {"14": [98, 245], "15": [113, 282], "17": [145, 362], "18": [162, 405], "21": [331, 827]},
-   "excellent": {"17": [162, 405], "18": [181, 452], "21": [363, 908]}
+   "normal": {"14": [98, 245], "15": [113, 282], "17": [145, 362], "18": [162, 405], "19": [181, 452], "20": [300, 750], "21": [331, 827], "22": [363, 908]},
+   "excellent": {"17": [162, 405], "18": [181, 452], "19": [200, 500], "20": [331, 827], "21": [363, 908]}
   },
   "bonus_attack_speed": {
    "weapon": {

@@ -20,6 +20,7 @@ SCREENSHOTS = Path(__file__).parent / "screenshots"
         ("- HP�. +1620 + 185", (HP, 1620, 185)),
         ("- H p: +4538 + 844", (HP, 4538, 844)),
         ("- Dark Resistance Level: 4", None),
+        ("- Dark Effectiveness Level: 1", None),
         ("- Strength: +57 +2 A", (STRENGTH, 57, 2)),
         ("- Strength: +S7", (STRENGTH, 57, None)),
         ("- strength: +1O", (STRENGTH, 10, None)),
