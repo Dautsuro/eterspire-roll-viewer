@@ -133,13 +133,22 @@ def _text_mask(strength: np.ndarray) -> np.ndarray:
     return strength > max(25.0, 0.35 * top)
 
 
-def _rows(mask: np.ndarray, unit: float) -> list[tuple[int, int]]:
-    """Vertical extents of the text rows in a mask."""
-    filled = mask.sum(axis=1) >= 2
-    rows, start, gap = [], None, 0
-    max_gap = max(1, int(unit * 0.2))
-    for y, on in enumerate(filled):
-        if on:
+def _without_vertical_lines(mask: np.ndarray) -> np.ndarray:
+    """Drops columns lit in most rows: panel borders and scroll bars, which would join all the rows into one."""
+    if mask.shape[0] < 4:
+        return mask
+    lines = mask.mean(axis=0) > 0.6
+    lines |= np.roll(lines, 1) | np.roll(lines, -1)  # and their anti-aliased edges
+    if lines.any():
+        mask = mask.copy()
+        mask[:, lines] = False
+    return mask
+
+
+def _segments(counts: np.ndarray, threshold: float, max_gap: int) -> list[tuple[int, int]]:
+    rows, start, gap, end = [], None, 0, 0
+    for y, count in enumerate(counts):
+        if count >= threshold:
             if start is None:
                 start = y
             gap, end = 0, y
@@ -150,7 +159,29 @@ def _rows(mask: np.ndarray, unit: float) -> list[tuple[int, int]]:
                 start = None
     if start is not None:
         rows.append((start, end + 1))
+    return rows
+
+
+def _rows(mask: np.ndarray, unit: float) -> list[tuple[int, int]]:
+    """Vertical extents of the text rows in a mask."""
+    counts = mask.sum(axis=1)
+    rows = []
+    for a, b in _segments(counts, 2, max(1, int(unit * 0.2))):
+        if b - a > unit * 1.8:  # taller than a line of text: split it where the ink is thinnest
+            part = counts[a:b]
+            inner = _segments(part, max(2.0, part.max() * 0.08), 0)
+            rows.extend((a + c, a + d) for c, d in inner)
+        else:
+            rows.append((a, b))
     return [(a, b) for a, b in rows if b - a >= unit * 0.5]
+
+
+def _text_span(row: np.ndarray, unit: float) -> tuple[int, int]:
+    """Left and right end of a row's text: up to the first wide gap, so a stray mark further right is left out."""
+    columns = np.flatnonzero(row.any(axis=0))
+    gaps = np.flatnonzero(np.diff(columns) > unit * 2)
+    end = columns[gaps[0]] if len(gaps) else columns[-1]
+    return int(columns[0]), int(end) + 1
 
 
 def _for_ocr(crop: np.ndarray) -> np.ndarray:
@@ -171,11 +202,10 @@ def _read_rows(frame: np.ndarray, ocr: Ocr, left: int, top: int, right: int, bot
     if right - left < unit * 4 or bottom - top < unit:
         return
     region = frame[top:bottom, left:right]
-    mask = _text_mask(text_strength(region))
+    mask = _without_vertical_lines(_text_mask(text_strength(region)))
     pad = max(2, int(unit * 0.4))
     for a, b in _rows(mask, unit):
-        columns = np.flatnonzero(mask[a:b].any(axis=0))
-        x0, x1 = int(columns[0]), int(columns[-1]) + 1
+        x0, x1 = _text_span(mask[a:b], unit)
         crop = region[max(0, a - pad):b + pad, max(0, x0 - pad):x1 + pad]
         lines = ocr.read(_for_ocr(crop))
         text = " ".join(line.text for line in lines).strip()

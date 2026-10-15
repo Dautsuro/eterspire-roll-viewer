@@ -107,3 +107,25 @@ def test_reading_only_where_the_previous_tooltips_were(ocr):
     armor = cv2.imread(str(SCREENSHOTS / "compare_armor.png"))
     regions = [search_region(p, weapon.shape) for p in read_panels(weapon, ocr)]
     assert [p.item for p in read_panels(armor, ocr, regions)] == [p.item for p in read_panels(armor, ocr)]
+
+
+@pytest.mark.parametrize(
+    "rows, columns",
+    [
+        ((520, 660), (1105, 1108)),  # a border through the whole stats box
+        ((520, 660), (960, 962)),  # right after the text
+        ((536, 590), (1105, 1108)),  # only part of the rows: the tall row is split instead
+    ],
+)
+def test_vertical_edges_do_not_join_the_lines(ocr, rows, columns):
+    """At some UI scales a border falls inside the read area; every line must still get its own label."""
+    import cv2
+
+    from roll_viewer.reader import read_panels
+
+    frame = cv2.imread(str(SCREENSHOTS / "equipped_null_helm.png"))
+    frame[rows[0]:rows[1], columns[0]:columns[1]] = (90, 120, 200)
+    (panel,) = read_panels(frame, ocr)
+    # each stat on its own line, ending where its text ends (where the label goes), centred on its row
+    assert [(line.stat, line.box[2]) for line in panel.lines] == [(HP, 934), (STRENGTH, 955)]
+    assert [(line.box[1] + line.box[3]) / 2 for line in panel.lines] == pytest.approx([545.5, 564], abs=1.5)
