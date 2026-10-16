@@ -67,6 +67,10 @@ EXPECTED = {
     "equipped_cowl.png": {"Rhodonite Thread Cowl": {HP: (1,), BAS: (3,), STRENGTH: (5,)}},
     "equipped_null_gauntlets.png": {"Null Gauntlets": {HP: (3,), BAS: (3,), STRENGTH: (5,)}},
     "equipped_null_helm.png": {"Null Helm": {HP: (5,), BAS: (3,), STRENGTH: (4,)}},
+    "compare_low_tier_gauntlets.png": {
+        "(Current)": {HP: (3, 4), BAS: (5,), STRENGTH: (4, 5)},
+        "Spiderfang Gauntlets": {HP: (4,), BAS: (4,), STRENGTH: (3,)},
+    },
     "equipped_ring.png": {"Amber": {STRENGTH: (6,), VITALITY: (4,)}},
 }
 
@@ -93,7 +97,7 @@ def test_screenshots(ocr, screenshot):
     for panel in panels:
         # every stat with a line in the tooltip must be read, so that it gets its label
         assert {line.stat for line in panel.lines} >= set(panel.item.stats), panel.lines
-        name = next(n for n in EXPECTED[screenshot] if n in panel.name.replace("R Ing", "Ring"))
+        name = next(n for n in EXPECTED[screenshot] if n in panel.name.replace("R Ing", "Ring") + panel.header)
         found[name] = {s: r.levels for s, r in compute_rolls(panel.item, load_data()).items()}
     assert found == EXPECTED[screenshot]
 

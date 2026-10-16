@@ -93,8 +93,12 @@ def _sums_for_quality(quality: int, levels_total: int) -> set[int]:
     return sums or {s for s in range(levels_total + 1) if round(100 * s / levels_total) == quality}
 
 
-def _tier_values(table: dict, tier: float, multiplier: float) -> tuple[float, float]:
-    """[high, highest] at ``tier``: from the table, geometrically between known tiers, or scaled past them."""
+MAX_EXTRAPOLATION = 1  # tiers past the known ones that can still be estimated; further away, quality decides
+
+
+def _tier_values(table: dict, tier: float, multiplier: float) -> tuple[float, float] | None:
+    """[high, highest] at ``tier``: from the table, geometrically between known tiers, or scaled just past them.
+    None when the tier is too far from the known ones to estimate (values grow faster at low tiers)."""
     known = sorted(int(t) for t in table)
     if str(tier) in table:
         return tuple(table[str(tier)])
@@ -105,11 +109,13 @@ def _tier_values(table: dict, tier: float, multiplier: float) -> tuple[float, fl
         f = (tier - lo) / (hi - lo)
         return tuple(a * (b / a) ** f for a, b in zip(table[str(lo)], table[str(hi)]))
     nearest = below[-1] if below else above[0]
+    if abs(tier - nearest) > MAX_EXTRAPOLATION:
+        return None
     return tuple(v * multiplier ** (tier - nearest) for v in table[str(nearest)])
 
 
-def gear_values(stat: str, kind: str, tier: int | None, excellent: bool, gear: dict) -> tuple[float, float]:
-    """The values of the High and Highest rolls of a Strength, Vitality or Bonus Attack Speed stat."""
+def gear_values(stat: str, kind: str, tier: int | None, excellent: bool, gear: dict) -> tuple[float, float] | None:
+    """The values of the High and Highest rolls of a Strength, Vitality or Bonus Attack Speed stat (None: unknown)."""
     rarity = "excellent" if excellent else "normal"
     if stat == BONUS_ATTACK_SPEED:
         return tuple(gear[BONUS_ATTACK_SPEED][kind][rarity])
@@ -128,8 +134,10 @@ def _signed_gear_level(stat: str, value: int | None, item: Item, gear: dict) -> 
         return {1, 2, 3, 4, 5}
     if value == 0:
         return {3}
-    high, highest = gear_values(stat, item.kind, item.tier, item.excellent, gear)
-    level = _nearest(value, {4: high, 5: highest})
+    values = gear_values(stat, item.kind, item.tier, item.excellent, gear)
+    if values is None:  # unknown tier: only the sign is certain, the quality has to tell High from Highest
+        return {4, 5} if value > 0 else {1, 2}
+    level = _nearest(value, {4: values[0], 5: values[1]})
     return {level} if value > 0 else {6 - level}
 
 
