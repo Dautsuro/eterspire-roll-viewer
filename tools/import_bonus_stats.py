@@ -1,6 +1,6 @@
 """Updates the gear values in roll_viewer/data/rolls.json from the "Bonus stats by tier" spreadsheet.
 
-    python tools/import_bonus_stats.py gear-bonus-stats.xlsx   (needs openpyxl)
+    python tools/import_bonus_stats.py data-sources/gear-bonus-stats.xlsx   (needs openpyxl)
 
 Each cell lists every roll worst to best, like "-49 / -30 / 0 / 30 / 49" (monster drops) or "0 / 30 / 49"
 (boss gear and Excellent). The two best are kept as [high, highest]; a missing one ("-") is stored as null.

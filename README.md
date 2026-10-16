@@ -63,7 +63,7 @@ When several rolls fit, the label shows them all, like `3-5/5`.
 All values live in [`roll_viewer/data/rolls.json`](roll_viewer/data/rolls.json), taken from
 [eterspire.wiki](https://eterspire.wiki/). If an update changes them, that's the only file to edit. The gear values
 can be regenerated from a spreadsheet of the wiki's Bonus Stats tables (one row per set, one column per stat) with
-`python tools/import_bonus_stats.py gear-bonus-stats.xlsx`, which also checks that sets of the same tier agree.
+`python tools/import_bonus_stats.py data-sources/gear-bonus-stats.xlsx`, which also checks that sets of the same tier agree.
 
 ## Options
 
