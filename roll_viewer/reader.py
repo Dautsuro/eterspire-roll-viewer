@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 
 import cv2
 import numpy as np
@@ -32,14 +33,17 @@ _UPGRADE_RE = re.compile(r"^\W*upgr\w*\s*le\w*", re.I)
 _SLOT_RE = re.compile(r"slot\s*[:;.]?\s*(\w+)", re.I)
 _END_RE = re.compile(r"weapon|ability|weight|locked|equipped|cannot", re.I)
 _OTHER_STAT_RE = re.compile(r"dark|resist|effective", re.I)  # stats that don't count toward quality
-_LABELS = [  # order matters: "Bonus Attack Speed" before "Attack Speed"
-    (BONUS_ATTACK_SPEED, re.compile(r"bonus\s*attack\s*s\w*", re.I)),
-    (ATTACK_SPEED, re.compile(r"attack\s*s[pq]e+d", re.I)),
-    (DAMAGE, re.compile(r"dam[a-z]*", re.I)),
-    (VITALITY, re.compile(r"vit[a-z1]*", re.I)),
-    (STRENGTH, re.compile(r"str[ea]n[gq]\w*", re.I)),
-    (HP, re.compile(r"^[^A-Za-z]*H\s*P\b", re.I)),  # only at the start of the line: "HP", "H p"
-]
+_LABELS = {  # stat names as the tooltip writes them, lowercase without spaces
+    BONUS_ATTACK_SPEED: "bonusattackspeed",
+    ATTACK_SPEED: "attackspeed",
+    DAMAGE: "damage",
+    VITALITY: "vitality",
+    STRENGTH: "strength",
+    HP: "hp",
+}
+LABEL_SIMILARITY = 0.75  # "Datnage", "Vita1ity", "H p" still count; "Weight", "Weapon Ability" don't
+# the label: letters and spaces from the start (a digit only inside a word, like "Vita1ity"), up to ":" or the value
+_LABEL_RE = re.compile(r"^[^A-Za-z]*([A-Za-z](?:[A-Za-z ]|\d(?=[A-Za-z]))*)")
 _VALUE_RE = re.compile(r"^[^\w+\-−]*([+\-−]?)\s*(\d+)\s*%?(?:\s*\+\s*(\d+)\s*%?)?")
 _LOOKALIKES = str.maketrans({"O": "0", "o": "0", "D": "0", "Q": "0", "I": "1", "l": "1", "|": "1", "i": "1",
                              "S": "5", "s": "5", "Z": "2", "z": "2", "B": "8", "g": "9", "?": "7"})
@@ -90,21 +94,28 @@ def _fix_digits(text: str) -> str:
     return re.sub(r"(?<![A-Za-z])[0-9OoDQIl|iSsZzBg?]+(?![A-Za-z])", fix, text)
 
 
+def _stat_of_label(label: str) -> str | None:
+    """The stat whose name is closest to ``label``, if close enough to be an OCR slip of it."""
+    word = re.sub(r"\s+", "", label.lower())
+    if not word:
+        return None
+    score, stat = max((SequenceMatcher(None, word, name).ratio(), stat) for stat, name in _LABELS.items())
+    return stat if score >= LABEL_SIMILARITY else None
+
+
 def parse_stat_line(text: str) -> tuple[str, int | None, int | None] | None:
     """``"- Bonus Attack Speed: +7% + 5%"`` -> ``("bonus_attack_speed", 7, 5)``. None if it isn't a stat line."""
     text = normalize(text)
-    for stat, pattern in _LABELS:
-        match = pattern.search(text)
-        if not match:
-            continue
-        rest = _fix_digits(text[match.end():])
-        value = _VALUE_RE.match(rest)
-        if not value:
-            return stat, None, None
-        sign, number, bonus = value.groups()
-        number = int(number)
-        return stat, -number if sign in "-−" and sign else number, int(bonus) if bonus else None
-    return None
+    match = _LABEL_RE.match(text)
+    stat = _stat_of_label(match.group(1)) if match else None
+    if stat is None:
+        return None
+    value = _VALUE_RE.match(_fix_digits(text[match.end():]))
+    if not value:
+        return stat, None, None
+    sign, number, bonus = value.groups()
+    number = int(number)
+    return stat, -number if sign in "-−" and sign else number, int(bonus) if bonus else None
 
 
 def parse_tier_quality(text: str) -> tuple[int | None, int | None]:

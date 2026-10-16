@@ -19,6 +19,12 @@ SCREENSHOTS = Path(__file__).parent / "screenshots"
         ("� Vitality: +181 +37", (VITALITY, 181, 37)),
         ("- HP�. +1620 + 185", (HP, 1620, 185)),
         ("- H p: +4538 + 844", (HP, 4538, 844)),
+        ("- Datnage: 94 + 27", (DAMAGE, 94, 27)),
+        ("- Vita1ity: +181", (VITALITY, 181, None)),
+        ("- Strength +57", (STRENGTH, 57, None)),
+        ("- Whirlwind: Spins, damaging nearby", None),
+        ("Equipable (Slot: Weapon)", None),
+        ("Tier 18 - Quality: 86%", None),
         ("- Dark Resistance Level: 4", None),
         ("- Dark Effectiveness Level: 1", None),
         ("- Strength: +57 +2 A", (STRENGTH, 57, 2)),
@@ -70,6 +76,10 @@ EXPECTED = {
     "compare_low_tier_gauntlets.png": {
         "(Current)": {HP: (3, 4), BAS: (5,), STRENGTH: (4, 5)},
         "Spiderfang Gauntlets": {HP: (4,), BAS: (4,), STRENGTH: (3,)},
+    },
+    "compare_low_tier_weapons.png": {  # the OCR reads the Claymore's "Damage" as "Datnage"
+        "Spiderfang Claymore": {DAMAGE: (3,), BAS: (4,), VITALITY: (3,)},
+        "Spiderfang Broadsword": {DAMAGE: (4,), BAS: (4,), VITALITY: (3,)},
     },
     "equipped_ring.png": {"Amber": {STRENGTH: (6,), VITALITY: (4,)}},
 }
