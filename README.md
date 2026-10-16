@@ -45,10 +45,10 @@ so HP must be Neutral (3): (3 + 4 + 5) / 15 = 80%.
   and 5% / 10% on weapons (3% / 4% and 7% / 12% on Excellent items). Negative values are Low / Lowest,
   0 or no line is Neutral.
 - **Strength** (armor) and **Vitality** (weapons) work the same way, with values that depend on the tier:
-  for example Strength is 49 / 81 at Tier 18 but 109 / 182 at Tier 22. The app knows them up to Tier 22
-  (normal) and Tier 21 (Excellent), estimates any tier in between or beyond, and picks the closest value.
-  High and Highest are far apart (×1.65 for Strength, ×2.5 for Vitality), so an estimate only needs to be
-  roughly right. Lines that don't count toward quality, like *Dark Resistance Level*, get no label.
+  for example Strength is 3 / 4 at Tier 4, 49 / 81 at Tier 18 and 109 / 182 at Tier 22. The app knows them
+  for every tier from 1 to 22, normal and Excellent. Where a value is missing (a few at Tiers 1-2) or for a
+  tier newer than the table, the quality decides between High and Highest, and the label shows both in grey
+  when it can't. Lines that don't count toward quality, like *Dark Resistance Level*, get no label.
 - **Damage** and **HP** values change between game updates, so they're not read from a table:
   their roll is what's left of the quality once the two other rolls are known.
   Excellent items only roll 3 to 5 on Damage/HP.
@@ -61,7 +61,9 @@ When the rolls can't add up to the quality shown (usually a misread number), the
 When several rolls fit, the label shows them all, like `3-5/5`.
 
 All values live in [`roll_viewer/data/rolls.json`](roll_viewer/data/rolls.json), taken from
-[eterspire.wiki](https://eterspire.wiki/). If an update changes them, that's the only file to edit.
+[eterspire.wiki](https://eterspire.wiki/). If an update changes them, that's the only file to edit. The gear values
+can be regenerated from a spreadsheet of the wiki's Bonus Stats tables (one row per set, one column per stat) with
+`python tools/import_bonus_stats.py gear-bonus-stats.xlsx`, which also checks that sets of the same tier agree.
 
 ## Options
 

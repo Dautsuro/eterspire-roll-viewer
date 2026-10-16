@@ -33,10 +33,12 @@ def levels(item):
         (Item(ARMOR, 22, 80, False, {HP: 4538, STRENGTH: 109}), {HP: (5,), BAS: (3,), STRENGTH: (4,)}),
         # Rhodonite Fire Staff: Lowest Bonus Attack Speed and Vitality
         (Item(WEAPON, 16, 40, False, {DAMAGE: 1127, BAS: -10, VITALITY: -320}), {DAMAGE: (4,), BAS: (1,), VITALITY: (1,)}),
-        # Spiderfang Gauntlets, Tier 4 (no Strength values known that low): the inventory one gives HP 88 = 4,
-        # so on the equipped one (same HP) Strength +3 is High. Quality is what tells it.
+        # Spiderfang Gauntlets, Tier 4: Strength 0 / 3 / 4, so +3 is High, as the quality of both pairs confirms
         (Item(ARMOR, 4, 73, False, {HP: 88, BAS: 1, STRENGTH: 0}), {HP: (4,), BAS: (4,), STRENGTH: (3,)}),
-        (Item(ARMOR, 4, 86, False, {HP: 88, BAS: 2, STRENGTH: 3}), {HP: (3, 4), BAS: (5,), STRENGTH: (4, 5)}),
+        (Item(ARMOR, 4, 86, False, {HP: 88, BAS: 2, STRENGTH: 3}), {HP: (4,), BAS: (5,), STRENGTH: (4,)}),
+        (Item(ARMOR, 4, 93, False, {HP: 88, BAS: 2, STRENGTH: 4}), {HP: (4,), BAS: (5,), STRENGTH: (5,)}),
+        # Tier 1: the wiki only knows Strength's best value, so the quality tells High from Highest
+        (Item(ARMOR, 1, 86, False, {HP: 10, BAS: 2, STRENGTH: 1}), {HP: (3, 4), BAS: (5,), STRENGTH: (4, 5)}),
         # Tier XVI Amber Ring (Excellent) +5: Mid strength, no vitality, (6 + 4) / 14 = 71%
         (Item(RING, 16, 71, True, {STRENGTH: 116}), {STRENGTH: (6,), VITALITY: (4,)}),
     ],
@@ -89,18 +91,15 @@ GEAR = DATA["gear"]
 @pytest.mark.parametrize(
     "stat, kind, tier, excellent, expected",
     [
-        (STRENGTH, ARMOR, 18, False, (49, 81)),  # straight from the table
+        (STRENGTH, ARMOR, 4, False, (3, 4)),  # Spiderfang: +3 is High, +4 Highest
+        (STRENGTH, ARMOR, 18, False, (49, 81)),
         (STRENGTH, ARMOR, 18, True, (55, 91)),
-        (STRENGTH, ARMOR, 17, True, (49, 81)),  # Flarium Excellent = Ominous
-        (STRENGTH, ARMOR, 15, False, (34.2, 56.0)),  # between Tier 14 and 16: Topaz Strength 57 is Highest
-        (STRENGTH, ARMOR, 13, False, (26.7, 43.6)),  # just below the table: /1.125
-        (STRENGTH, ARMOR, 19, False, (55, 91)),
         (STRENGTH, ARMOR, 19, True, (60, 100)),  # not Tier 20 normal (90 / 150)
-        (STRENGTH, ARMOR, 21, True, (109, 182)),  # = Tier 22 normal, as seen on Null gear
-        (STRENGTH, ARMOR, 22, True, (122.6, 204.8)),  # unknown: Tier 23 normal, scaled from Tier 22
-        (VITALITY, WEAPON, 20, False, (300, 750)),
-        (VITALITY, WEAPON, 21, True, (363, 908)),
-        (VITALITY, WEAPON, 16, False, (128.0, 319.5)),  # Rhodonite Fire Staff Vitality -320 is Lowest
+        (STRENGTH, ARMOR, 22, False, (109, 182)),  # Null, as seen in game
+        (STRENGTH, ARMOR, 22, True, (120, 199)),
+        (STRENGTH, ARMOR, 23, False, (122.6, 204.8)),  # one tier past the table: scaled
+        (VITALITY, WEAPON, 16, False, (128, 320)),  # Rhodonite Fire Staff Vitality -320 is Lowest
+        (VITALITY, WEAPON, 22, True, (397, 992)),
         (BAS, WEAPON, 22, True, (7, 12)),  # the same at every tier
     ],
 )
@@ -108,6 +107,6 @@ def test_gear_values(stat, kind, tier, excellent, expected):
     assert gear_values(stat, kind, tier, excellent, GEAR) == pytest.approx(expected, abs=0.1)
 
 
-def test_tiers_far_from_the_table_are_not_guessed():
-    assert gear_values(STRENGTH, ARMOR, 4, False, GEAR) is None
-    assert gear_values(VITALITY, WEAPON, 10, True, GEAR) is None
+def test_unknown_values():
+    assert gear_values(STRENGTH, ARMOR, 25, False, GEAR) is None  # too far past the table to scale
+    assert gear_values(STRENGTH, ARMOR, 1, False, GEAR) == (None, 1)  # missing on the wiki

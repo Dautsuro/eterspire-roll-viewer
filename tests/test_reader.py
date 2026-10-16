@@ -74,7 +74,7 @@ EXPECTED = {
     "equipped_null_gauntlets.png": {"Null Gauntlets": {HP: (3,), BAS: (3,), STRENGTH: (5,)}},
     "equipped_null_helm.png": {"Null Helm": {HP: (5,), BAS: (3,), STRENGTH: (4,)}},
     "compare_low_tier_gauntlets.png": {
-        "(Current)": {HP: (3, 4), BAS: (5,), STRENGTH: (4, 5)},
+        "(Current)": {HP: (4,), BAS: (5,), STRENGTH: (4,)},
         "Spiderfang Gauntlets": {HP: (4,), BAS: (4,), STRENGTH: (3,)},
     },
     "compare_low_tier_weapons.png": {  # the OCR reads the Claymore's "Damage" as "Datnage"

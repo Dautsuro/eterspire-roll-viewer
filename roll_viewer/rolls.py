@@ -107,15 +107,17 @@ def _tier_values(table: dict, tier: float, multiplier: float) -> tuple[float, fl
     if below and above:
         lo, hi = below[-1], above[0]
         f = (tier - lo) / (hi - lo)
-        return tuple(a * (b / a) ** f for a, b in zip(table[str(lo)], table[str(hi)]))
+        return tuple(None if a is None or b is None else a * (b / a) ** f
+                     for a, b in zip(table[str(lo)], table[str(hi)]))
     nearest = below[-1] if below else above[0]
     if abs(tier - nearest) > MAX_EXTRAPOLATION:
         return None
-    return tuple(v * multiplier ** (tier - nearest) for v in table[str(nearest)])
+    return tuple(None if v is None else v * multiplier ** (tier - nearest) for v in table[str(nearest)])
 
 
-def gear_values(stat: str, kind: str, tier: int | None, excellent: bool, gear: dict) -> tuple[float, float] | None:
-    """The values of the High and Highest rolls of a Strength, Vitality or Bonus Attack Speed stat (None: unknown)."""
+def gear_values(stat: str, kind: str, tier: int | None, excellent: bool, gear: dict) -> tuple | None:
+    """The values of the High and Highest rolls of a Strength, Vitality or Bonus Attack Speed stat.
+    None (or a None inside) when it isn't known."""
     rarity = "excellent" if excellent else "normal"
     if stat == BONUS_ATTACK_SPEED:
         return tuple(gear[BONUS_ATTACK_SPEED][kind][rarity])
@@ -135,7 +137,8 @@ def _signed_gear_level(stat: str, value: int | None, item: Item, gear: dict) -> 
     if value == 0:
         return {3}
     values = gear_values(stat, item.kind, item.tier, item.excellent, gear)
-    if values is None:  # unknown tier: only the sign is certain, the quality has to tell High from Highest
+    if values is None or None in values or values[0] == values[1]:
+        # unknown values: only the sign is certain, the quality has to tell High from Highest
         return {4, 5} if value > 0 else {1, 2}
     level = _nearest(value, {4: values[0], 5: values[1]})
     return {level} if value > 0 else {6 - level}
